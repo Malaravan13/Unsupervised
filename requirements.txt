@@ -1,6 +1,6 @@
+gradio
 pandas
-numpy
+scikit-learn
 matplotlib
 seaborn
-scikit-learn
-gradio
+numpy
