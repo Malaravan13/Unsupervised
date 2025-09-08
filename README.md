@@ -10,6 +10,7 @@ pinned: false
 
 # Wine Clustering App
 
+# App link:https://huggingface.co/spaces/Malaravan13/gradio
 An interactive machine learning application built with Python, Scikit-learn, and Gradio, designed to explore unsupervised clustering algorithms on the Wine dataset.
 
 This app allows users to try different clustering methods (KMeans, Hierarchical, DBSCAN) and visualize results in real-time with PCA-reduced scatter plots.
