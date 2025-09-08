@@ -8,7 +8,7 @@ sdk_version: "3.50.2"   # (or whatever Gradio version you use)
 app_file: app.py
 pinned: false
 ---
-s
+
 # Wine Clustering App
 
 An interactive machine learning application built with Python, Scikit-learn, and Gradio, designed to explore unsupervised clustering algorithms on the Wine dataset.
