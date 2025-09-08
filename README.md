@@ -50,15 +50,18 @@ PCA visualization with clusters and your new sample highlighted (⭐).
 ✅ KMeans
 Belongs to Cluster: 2 (KMeans, k=3)  
 Silhouette Score = 0.4532
+<img width="866" height="682" alt="Screenshot 2025-09-08 070921" src="https://github.com/user-attachments/assets/e9c7eab8-4348-43f4-b43d-6f5db5957e09" />
 
 
 ✅ Hierarchical
 Belongs to Cluster: 1 (Hierarchical, k=3)  
 Silhouette Score = 0.3847
+<img width="1048" height="675" alt="Screenshot 2025-09-08 070937" src="https://github.com/user-attachments/assets/d85b1917-19bb-4089-be5d-6e360a08c97d" />
 
 
 🚨 DBSCAN
 OUTLIER: DBSCAN labeled this sample as noise
+<img width="856" height="674" alt="Screenshot 2025-09-08 071003" src="https://github.com/user-attachments/assets/0b939a1c-5959-4edd-ba57-f5413f0446c0" />
 
 
 ⚙️ Algorithm Details
