@@ -24,6 +24,7 @@ X_scaled = scaler.fit_transform(X)
 def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features):
     input_scaled = scaler.transform([features])
 
+    # ---------------- KMeans ----------------
     if algorithm == "KMeans":
         model = KMeans(n_clusters=int(k_value), random_state=42).fit(X_scaled)
         cluster = model.predict(input_scaled)[0]
@@ -31,22 +32,7 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
         title = f"KMeans (k={k_value})"
         score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 else None
 
-    elif algorithm == "Hierarchical":
-        model = AgglomerativeClustering(n_clusters=int(k_value))
-        labels = model.fit_predict(X_scaled)
-
-        # Assign new sample to nearest centroid
-        centroids = []
-        for cluster_id in range(int(k_value)):
-            cluster_points = X_scaled[labels == cluster_id]
-            centroid = cluster_points.mean(axis=0)
-            centroids.append(centroid)
-
-        cluster = pairwise_distances_argmin_min(input_scaled, centroids)[0][0]
-        title = f"Hierarchical (k={k_value})"
-        score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 else None
-
-        # Visualization
+        # PCA for visualization
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
         new_point = pca.transform(input_scaled)
@@ -63,7 +49,42 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
             result_text += f"\n📊 Silhouette Score = {score:.4f}"
         return result_text, plt
 
+    # ---------------- Hierarchical ----------------
+    elif algorithm == "Hierarchical":
+        model = AgglomerativeClustering(n_clusters=int(k_value))
+        labels = model.fit_predict(X_scaled)
+
+        # Assign new sample to nearest centroid
+        centroids = []
+        for cluster_id in range(int(k_value)):
+            cluster_points = X_scaled[labels == cluster_id]
+            centroid = cluster_points.mean(axis=0)
+            centroids.append(centroid)
+
+        cluster = pairwise_distances_argmin_min(input_scaled, centroids)[0][0]
+        title = f"Hierarchical (k={k_value})"
+        score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 else None
+
+        # PCA visualization
+        pca = PCA(n_components=2)
+        X_pca = pca.fit_transform(X_scaled)
+        new_point = pca.transform(input_scaled)
+
+        plt.figure(figsize=(6, 5))
+        plt.scatter(X_pca[:, 0], X_pca[:, 1], c=labels, cmap="tab10", alpha=0.6)
+        plt.scatter(new_point[:, 0], new_point[:, 1], c="red", marker="*", s=200,
+                    edgecolors="black", label="New Sample")
+        plt.title(f"{title} — New sample → Cluster {cluster}")
+        plt.legend()
+
+        result_text = f"✅ Belongs to Cluster {cluster} ({title})"
+        if score:
+            result_text += f"\n📊 Silhouette Score = {score:.4f}"
+        return result_text, plt
+
+    # ---------------- DBSCAN ----------------
     elif algorithm == "DBSCAN":
+        # Run DBSCAN directly on scaled features (same as VS Code)
         model = DBSCAN(eps=float(eps_value), min_samples=int(min_samples_value)).fit(X_scaled)
         labels = model.labels_
         clusters = set(labels) - {-1}
@@ -81,8 +102,7 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
         title = f"DBSCAN (eps={eps_value}, min_samples={min_samples_value})"
         score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 and -1 not in set(labels) else None
 
-    # PCA visualization (KMeans / DBSCAN)
-    if algorithm in ["KMeans", "DBSCAN"]:
+        # PCA for 2D visualization
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
         new_point = pca.transform(input_scaled)
@@ -98,6 +118,9 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
         if score:
             result_text += f"\n📊 Silhouette Score = {score:.4f}"
         return result_text, plt
+
+    # ---------------- Failsafe ----------------
+    return "⚠️ No valid clustering result.", None
 
 # ---------------------------
 # Login Validation
@@ -128,7 +151,7 @@ with gr.Blocks() as demo:
 
             algorithm = gr.Dropdown(["KMeans", "Hierarchical", "DBSCAN"], label="Select Algorithm", value="KMeans")
             k_value = gr.Number(label="Number of Clusters (k for KMeans/Hierarchical)", value=3)
-            eps_value = gr.Number(label="DBSCAN eps (radius)", value=3.0)
+            eps_value = gr.Number(label="DBSCAN eps (radius)", value=1.0)
             min_samples_value = gr.Number(label="DBSCAN min_samples", value=5)
 
             inputs = []
@@ -142,8 +165,8 @@ with gr.Blocks() as demo:
 
     # Button Actions
     login_btn.click(fn=login, inputs=[username, password], outputs=[login_msg, app_page])
-    btn.click(fn=predict_cluster, 
-              inputs=[algorithm, k_value, eps_value, min_samples_value] + inputs, 
+    btn.click(fn=predict_cluster,
+              inputs=[algorithm, k_value, eps_value, min_samples_value] + inputs,
               outputs=[output_text, output_plot])
 
 # ---------------------------
