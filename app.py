@@ -8,23 +8,17 @@ from sklearn.metrics.pairwise import euclidean_distances, pairwise_distances_arg
 from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 
-# ---------------------------
-# Load dataset
-# ---------------------------
 data = pd.read_csv("wine-clustering.csv")
 X = data.select_dtypes(include=['float64', 'int64']).values
 
-# Scale features
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# ---------------------------
-# Prediction + Visualization
-# ---------------------------
+
 def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features):
     input_scaled = scaler.transform([features])
 
-    # ---------------- KMeans ----------------
+  
     if algorithm == "KMeans":
         model = KMeans(n_clusters=int(k_value), random_state=42).fit(X_scaled)
         cluster = model.predict(input_scaled)[0]
@@ -32,7 +26,6 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
         title = f"KMeans (k={k_value})"
         score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 else None
 
-        # PCA for visualization
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
         new_point = pca.transform(input_scaled)
@@ -49,12 +42,10 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
             result_text += f"\n📊 Silhouette Score = {score:.4f}"
         return result_text, plt
 
-    # ---------------- Hierarchical ----------------
     elif algorithm == "Hierarchical":
         model = AgglomerativeClustering(n_clusters=int(k_value))
         labels = model.fit_predict(X_scaled)
 
-        # Assign new sample to nearest centroid
         centroids = []
         for cluster_id in range(int(k_value)):
             cluster_points = X_scaled[labels == cluster_id]
@@ -65,7 +56,6 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
         title = f"Hierarchical (k={k_value})"
         score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 else None
 
-        # PCA visualization
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
         new_point = pca.transform(input_scaled)
@@ -82,9 +72,7 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
             result_text += f"\n📊 Silhouette Score = {score:.4f}"
         return result_text, plt
 
-    # ---------------- DBSCAN ----------------
     elif algorithm == "DBSCAN":
-        # Run DBSCAN directly on scaled features (same as VS Code)
         model = DBSCAN(eps=float(eps_value), min_samples=int(min_samples_value)).fit(X_scaled)
         labels = model.labels_
         clusters = set(labels) - {-1}
@@ -102,7 +90,6 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
         title = f"DBSCAN (eps={eps_value}, min_samples={min_samples_value})"
         score = silhouette_score(X_scaled, labels) if len(set(labels)) > 1 and -1 not in set(labels) else None
 
-        # PCA for 2D visualization
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
         new_point = pca.transform(input_scaled)
@@ -119,23 +106,15 @@ def predict_cluster(algorithm, k_value, eps_value, min_samples_value, *features)
             result_text += f"\n📊 Silhouette Score = {score:.4f}"
         return result_text, plt
 
-    # ---------------- Failsafe ----------------
     return "⚠️ No valid clustering result.", None
 
-# ---------------------------
-# Login Validation
-# ---------------------------
 def login(username, password):
     if username == "admin" and password == "1234":
         return gr.update(visible=False), gr.update(visible=True)
     else:
         return gr.update(value="❌ Invalid login. Try again."), gr.update(visible=False)
-
-# ---------------------------
-# Gradio UI
-# ---------------------------
+\
 with gr.Blocks() as demo:
-    # Login Page
     with gr.Row(visible=True) as login_page:
         with gr.Column():
             gr.Markdown("## 🔑 Login to Access Wine Clustering App")
@@ -144,7 +123,6 @@ with gr.Blocks() as demo:
             login_btn = gr.Button("Login")
             login_msg = gr.Textbox(label="Login Status")
 
-    # Main App Page
     with gr.Row(visible=False) as app_page:
         with gr.Column():
             gr.Markdown("## 🍷 Wine Clustering App")
@@ -163,14 +141,11 @@ with gr.Blocks() as demo:
             output_text = gr.Textbox(label="Result")
             output_plot = gr.Plot()
 
-    # Button Actions
     login_btn.click(fn=login, inputs=[username, password], outputs=[login_msg, app_page])
     btn.click(fn=predict_cluster,
               inputs=[algorithm, k_value, eps_value, min_samples_value] + inputs,
               outputs=[output_text, output_plot])
 
-# ---------------------------
-# Launch
-# ---------------------------
+
 if __name__ == "__main__":
     demo.launch()
